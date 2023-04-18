@@ -60,15 +60,16 @@ func webhookCatcher(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Execute bash script on hook
+	// Hook received return 200
+	w.Write([]byte("Success"))
+
+	// Execute bash script on hook or display what was the problem
 	result, err := executeScript()
 	if err != nil {
-		throwError("Error executing script.", w)
+		log.Println(err)
+		throwError("Error executing script", w)
 	}
 	log.Println(result)
-
-	// Return 200
-	w.Write([]byte("Success"))
 
 }
 
