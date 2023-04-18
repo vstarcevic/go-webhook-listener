@@ -6,14 +6,17 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"os/exec"
 	"strings"
 )
 
 const authKey string = "123456"
 const port string = "9000"
+const scriptWithPath string = "/home/vlada/deploy-front.sh"
 
 type webhookJSONRespStruct struct {
 	Ref    string `json:"ref"`
@@ -56,19 +59,16 @@ func webhookCatcher(w http.ResponseWriter, r *http.Request) {
 		throwError("Unable to Process JSON Response", w)
 		return
 	}
+
+	// Execute bash script on hook
+	result, err := executeScript()
+	if err != nil {
+		throwError("Error executing script.", w)
+	}
+	log.Println(result)
+
 	// Return 200
 	w.Write([]byte("Success"))
-
-	// Process action for webhook
-	// e.g. run bash script
-
-	// out, err := exec.Command("ls").Output()
-
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// fmt.Println(string(out))
 
 }
 
@@ -115,4 +115,14 @@ func processJSON(r *http.Request, w http.ResponseWriter) bool {
 
 func throwError(s string, w http.ResponseWriter) {
 	http.Error(w, s, 500)
+}
+
+func executeScript() (string, error) {
+	cmd, err := exec.Command("/bin/sh", scriptWithPath).Output()
+	if err != nil {
+		fmt.Printf("error %s", err)
+		return "", err
+	}
+	output := string(cmd)
+	return output, nil
 }
